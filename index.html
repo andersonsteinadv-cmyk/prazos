@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de Atendimento</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f5;min-height:100vh;padding:1rem}
+.wrap{max-width:620px;margin:0 auto;background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.header{background:#002828;border-radius:10px;padding:14px 18px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header h1{font-size:14px;font-weight:600;color:#fff;margin-bottom:2px}
+.header p{font-size:11px;color:#9FE1CB}
+.step-dots{display:flex;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3)}
+.dot.on{background:#5DCAA5}
+.dot.done{background:rgba(255,255,255,.6)}
+.progress{height:3px;background:#e8e8e8;border-radius:2px;margin-bottom:1.25rem;overflow:hidden}
+.progress-bar{height:100%;background:#002828;border-radius:2px;transition:width .3s}
+.step{display:none}
+.step.active{display:block}
+.sec{font-size:10px;font-weight:600;color:#666;letter-spacing:.06em;text-transform:uppercase;padding:8px 0 5px;border-bottom:1px solid #eee;margin-bottom:10px;margin-top:6px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;color:#666;margin-bottom:3px}
+.field input,.field select,.field textarea{width:100%;height:34px;font-size:12px;padding:0 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;font-family:Arial,sans-serif}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#002828}
+.field textarea{height:60px;padding:8px 10px;resize:none;line-height:1.5}
+.field input.err{border-color:#e24b4a}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.prazo-checks{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px}
+.pcheck{border:1px solid #ddd;border-radius:8px;padding:8px 10px;cursor:pointer}
+.pcheck.on{border-color:#002828;background:#e6f4ef}
+.pcheck-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.pcheck-top input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:#002828}
+.pcheck-top span{font-size:12px;font-weight:500}
+.pcheck.on .pcheck-top span{color:#002828}
+.pcheck-date{display:none}
+.pcheck.on .pcheck-date{display:block}
+.pcheck-date input{width:100%;height:28px;font-size:11px;padding:0 8px;border:1px solid #aaa;border-radius:5px;margin-top:2px;font-family:Arial,sans-serif}
+.canal-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.canal-opt{height:30px;padding:0 12px;font-size:11px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#555;font-family:Arial,sans-serif}
+.canal-opt:hover{background:#f5f5f5}
+.canal-opt.on{border-color:#002828;background:#002828;color:#fff}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.btn{height:34px;padding:0 14px;font-size:12px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#1a1a1a;cursor:pointer;font-family:Arial,sans-serif;font-weight:500}
+.btn:hover{background:#f5f5f5}
+.btn.primary{background:#002828;border-color:#002828;color:#fff}
+.btn.primary:hover{background:#003c3c}
+.btn.success{background:#e6f4ef;border-color:#0f6e56;color:#0f6e56}
+.resumo-card{background:#f8f8f8;border-radius:8px;padding:12px;margin-bottom:10px}
+.resumo-card h3{font-size:11px;font-weight:600;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.r-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;font-size:12px}
+.r-row:last-child{border-bottom:none}
+.r-row span:first-child{color:#888}
+.r-row span:last-child{font-weight:500;text-align:right;max-width:65%}
+.prazo-tag{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600;background:#e6f1fb;color:#185fa5;margin:1px}
+.prazo-tag.psdd{background:#eeedfe;color:#534ab7}
+.sucesso{text-align:center;padding:2rem 1rem}
+.sucesso-icon{width:52px;height:52px;border-radius:50%;background:#e6f4ef;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px}
+.sucesso h2{font-size:16px;font-weight:600;margin-bottom:8px}
+.sucesso p{font-size:13px;color:#555;margin-bottom:1rem;line-height:1.6}
+.sucesso-prazos{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:1.25rem}
+.sucesso-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+@media(max-width:480px){.g2,.g3{grid-template-columns:1fr}.prazo-checks{grid-template-columns:1fr}}
+@media print{
+  body{background:#fff;padding:0}
+  .wrap{box-shadow:none;padding:0;max-width:100%}
+  .nav,.sucesso-btns,.header,.progress,.step-dots{display:none!important}
+  .step{display:none!important}
+  #print-area{display:block!important}
+}
+#print-area{display:none;font-family:Arial,sans-serif;font-size:12px}
+.pa-header{background:#002828;color:#fff;padding:12px 16px;border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between}
+.pa-header h1{font-size:14px;font-weight:700;color:#fff}
+.pa-header p{font-size:11px;color:#9FE1CB;margin-top:2px}
+.pa-section{border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:10px}
+.pa-section h3{font-size:10px;font-weight:700;color:#002828;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee}
+.pa-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f5f5f5;font-size:11px}
+.pa-row:last-child{border-bottom:none}
+.pa-row span:first-child{color:#888}
+.pa-row span:last-child{font-weight:500}
+.pa-prazos{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.pa-prazo{border:1px solid #aaa;border-radius:4px;padding:3px 8px;font-size:11px}
+.pa-prazo.psdd{border-color:#534ab7;color:#534ab7}
+.pa-assinatura{display:flex;gap:20px;margin-top:20px}
+.pa-ass-linha{flex:1;border-top:1px solid #333;padding-top:4px;text-align:center;font-size:10px;color:#666}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>Ficha de Atendimento</h1>
+      <p id="step-label">Passo 1 de 4 · Dados do cliente</p>
+    </div>
+    <div class="step-dots">
+      <div class="dot on" id="dot-0"></div>
+      <div class="dot" id="dot-1"></div>
+      <div class="dot" id="dot-2"></div>
+      <div class="dot" id="dot-3"></div>
+    </div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="prog" style="width:25%"></div></div>
+
+  <div class="step active" id="step-0">
+    <div class="sec">Identificação</div>
+    <div class="field"><label>Nome completo *</label><input id="c-nome" placeholder="Nome completo do cliente"></div>
+    <div class="g3">
+      <div class="field"><label>Data de nascimento</label><input type="date" id="c-nasc"></div>
+      <div class="field"><label>CPF</label><input id="c-cpf" placeholder="000.000.000-00"></div>
+      <div class="field"><label>Senha GOV.BR</label><input id="c-gov" placeholder="Senha do portal"></div>
+    </div>
+    <div class="sec">Contato</div>
+    <div class="g2">
+      <div class="field"><label>Telefone / WhatsApp *</label><input id="c-tel" placeholder="(54) 99999-9999"></div>
+      <div class="field"><label>E-mail</label><input id="c-email" placeholder="email@exemplo.com"></div>
+    </div>
+    <div class="field"><label>Profissão</label><input id="c-prof" placeholder="Profissão do cliente"></div>
+    <div class="sec">Endereço</div>
+    <div class="g2">
+      <div class="field"><label>Rua / Avenida</label><input id="c-end" placeholder="Nome da rua ou avenida"></div>
+      <div class="field"><label>Número</label><input id="c-num" placeholder="Nº"></div>
+    </div>
+    <div class="g3">
+      <div class="field"><label>Bairro</label><input id="c-bairro" placeholder="Bairro"></div>
+      <div class="field"><label>Cidade / Estado</label><input id="c-cidade" placeholder="Cidade/RS"></div>
+      <div class="field"><label>CEP</label><input id="c-cep" placeholder="00000-000"></div>
+    </div>
+    <div class="nav">
+      <span style="font-size:11px;color:#888">* campo obrigatório</span>
+      <button class="btn primary" onclick="irPara(1)">Próximo →</button>
+    </div>
+  </div>
+
+  <div class="step" id="step-1">
+    <div class="sec">CNH</div>
+    <div class="g3">
+      <div class="field"><label>Nº registro da CNH</label><input id="i-cnh" placeholder="00000000000"></div>
+      <div class="field"><label>Data 1ª habilitação</label><input type="date" id="i-hab"></div>
+      <div class="field"><label>Categoria</label>
+        <select id="i-cat"><option value="">—</option><option>A</option><option>B</option><option>AB</option><option>C</option><option>D</option><option>E</option></select>
+      </div>
+    </div>
+    <div class="sec">Auto de infração</div>
+    <div class="g2">
+      <div class="field"><label>Número do AIT *</label><input id="i-ait" placeholder="Ex: Q123456789"></div>
+      <div class="field"><label>Data da autuação</label><input type="date" id="i-daut"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Órgão autuador</label>
+        <select id="i-orgao"><option value="">— Selecione —</option><option>DETRAN/RS</option><option>PRF</option><option>DAER/RS</option><option>PM/RS</option><option>Município</option><option>Outro</option></select>
+      </div>
+      <div class="field"><label>Placa do veículo</label><input id="i-placa" placeholder="ABC-1234"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Transferência necessária?</label>
+        <select id="i-transf"><option value="">— Selecione —</option><option>Sim</option><option>Não</option></select>
+      </div>
+      <div class="field"><label>Prazo da transferência</label><input type="date" id="i-transf-data"></div>
+    </div>
+    <div class="sec">Prazos — selecione e informe a data</div>
+    <div class="prazo-checks">
+      <div class="pcheck" id="pc-NAIT" onclick="toggleTipo('NAIT')"><div class="pcheck-top"><input type="checkbox" id="chk-NAIT" onclick="event.stopPropagation()"><span>NAIT</span></div><div class="pcheck-date"><input type="date" id="dt-NAIT" onclick="event.stopPropagation()"></div></div>
+      <div class="pcheck" id="pc-DefesaPrevia" onclick="toggleTipo('DefesaPrevia')"><div class="pcheck-top"><input type="checkbox" id="chk-DefesaPrevia" onclick="event.stopPropagation()"><span>Defesa prévia</span></div><div class="pcheck-date"><input type="date" id="dt-DefesaPrevia" onclick="event.stopPropagation()"></div></div>
+      <div class="pcheck" id="pc-NIP" onclick="toggleTipo('NIP')"><div class="pcheck-top"><input type="checkbox" id="chk-NIP" onclick="event.stopPropagation()"><span>NIP</span></div><div class="pcheck-date"><input type="date" id="dt-NIP" onclick="event.stopPropagation()"></div></div>
+      <div class="pcheck" id="pc-JARI" onclick="toggleTipo('JARI')"><div class="pcheck-top"><input type="checkbox" id="chk-JARI" onclick="event.stopPropagation()"><span>JARI</span></div><div class="pcheck-date"><input type="date" id="dt-JARI" onclick="event.stopPropagation()"></div></div>
+      <div class="pcheck" id="pc-CETRAN" onclick="toggleTipo('CETRAN')"><div class="pcheck-top"><input type="checkbox" id="chk-CETRAN" onclick="event.stopPropagation()"><span>CETRAN</span></div><div class="pcheck-date"><input type="date" id="dt-CETRAN" onclick="event.stopPropagation()"></div></div>
+      <div class="pcheck" id="pc-DefesaPreviaPSDD" onclick="toggleTipo('DefesaPreviaPSDD')"><div class="pcheck-top"><input type="checkbox" id="chk-DefesaPreviaPSDD" onclick="event.stopPropagation()"><span>Defesa prévia PSDD</span></div><div class="pcheck-date"><input type="date" id="dt-DefesaPreviaPSDD" onclick="event.stopPropagation()"></div></div>
+      <div class="pcheck" id="pc-JARIPSDD" onclick="toggleTipo('JARIPSDD')"><div class="pcheck-top"><input type="checkbox" id="chk-JARIPSDD" onclick="event.stopPropagation()"><span>JARI PSDD</span></div><div class="pcheck-date"><input type="date" id="dt-JARIPSDD" onclick="event.stopPropagation()"></div></div>
+      <div class="pcheck" id="pc-CETRANPSDD" onclick="toggleTipo('CETRANPSDD')"><div class="pcheck-top"><input type="checkbox" id="chk-CETRANPSDD" onclick="event.stopPropagation()"><span>CETRAN PSDD</span></div><div class="pcheck-date"><input type="date" id="dt-CETRANPSDD" onclick="event.stopPropagation()"></div></div>
+    </div>
+    <div class="nav">
+      <button class="btn" onclick="irPara(0)">← Voltar</button>
+      <button class="btn primary" onclick="irPara(2)">Próximo →</button>
+    </div>
+  </div>
+
+  <div class="step" id="step-2">
+    <div class="sec">Responsáveis</div>
+    <div class="g2">
+      <div class="field"><label>Responsável pelo caso</label>
+        <select id="e-resp"><option>Anderson</option><option>João</option><option>Arilson</option><option>Gabrielly</option></select>
+      </div>
+      <div class="field"><label>Quem realizou o atendimento</label>
+        <select id="e-atend"><option>Anderson</option><option>João</option><option>Arilson</option><option>Gabrielly</option></select>
+      </div>
+    </div>
+    <div class="sec">Canal de envio</div>
+    <div class="canal-opts">
+      <button class="canal-opt on" id="canal-nenhum" onclick="setCanal('')">— Não enviado</button>
+      <button class="canal-opt" id="canal-Correios" onclick="setCanal('Correios')">Correios</button>
+      <button class="canal-opt" id="canal-TudoFacil" onclick="setCanal('Tudo Fácil')">Tudo Fácil</button>
+      <button class="canal-opt" id="canal-DetranOnline" onclick="setCanal('DetranOnline')">DetranOnline</button>
+    </div>
+    <div class="field" id="rastr-field" style="display:none"><label>Nº rastreio / protocolo</label><input id="e-rastr" placeholder="Ex: BR123456789BR"></div>
+    <div class="sec">Honorários</div>
+    <div class="g3">
+      <div class="field"><label>Valor (R$)</label><input id="e-honor" placeholder="0,00"></div>
+      <div class="field"><label>Forma de pagamento</label>
+        <select id="e-pgto"><option value="">— Selecione —</option><option>Pix à vista</option><option>Cartão à vista</option><option>Parcelado</option><option>Boleto</option></select>
+      </div>
+      <div class="field"><label>Data / parcelas</label><input id="e-parcelas" placeholder="Ex: 3x vencendo dia 10"></div>
+    </div>
+    <div class="sec">Observações</div>
+    <div class="field"><textarea id="e-obs" placeholder="Informações adicionais sobre o caso..."></textarea></div>
+    <div class="nav">
+      <button class="btn" onclick="irPara(1)">← Voltar</button>
+      <button class="btn primary" onclick="irPara(3)">Revisar →</button>
+    </div>
+  </div>
+
+  <div class="step" id="step-3">
+    <div id="resumo-content"></div>
+    <div class="nav">
+      <button class="btn" onclick="irPara(2)">← Corrigir</button>
+      <button class="btn primary" onclick="confirmar()">✓ Confirmar e salvar</button>
+    </div>
+  </div>
+
+  <div class="step" id="step-4">
+    <div class="sucesso">
+      <div class="sucesso-icon">✓</div>
+      <h2>Cliente cadastrado!</h2>
+      <p id="sucesso-msg"></p>
+      <div class="sucesso-prazos" id="sucesso-prazos"></div>
+      <div class="sucesso-btns">
+        <button class="btn success" onclick="novoAtendimento()">+ Novo atendimento</button>
+        <button class="btn" onclick="imprimirFicha()">🖨️ Imprimir ficha</button>
+        <button class="btn" onclick="exportarICS()">📅 Exportar .ics</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="print-area">
+  <div class="pa-header">
+    <div><h1>Ficha de Atendimento</h1><p id="pa-data"></p></div>
+    <div style="text-align:right;font-size:11px;color:#9FE1CB"><div id="pa-resp"></div><div id="pa-atend"></div></div>
+  </div>
+  <div class="pa-section"><h3>Dados do Cliente</h3>
+    <div class="pa-row"><span>Nome</span><span id="pa-nome"></span></div>
+    <div class="pa-row"><span>Data de nascimento</span><span id="pa-nasc"></span></div>
+    <div class="pa-row"><span>CPF</span><span id="pa-cpf"></span></div>
+    <div class="pa-row"><span>Telefone / WhatsApp</span><span id="pa-tel"></span></div>
+    <div class="pa-row"><span>E-mail</span><span id="pa-email"></span></div>
+    <div class="pa-row"><span>Profissão</span><span id="pa-prof"></span></div>
+    <div class="pa-row"><span>Endereço</span><span id="pa-end"></span></div>
+    <div class="pa-row"><span>Cidade / CEP</span><span id="pa-cidade"></span></div>
+  </div>
+  <div class="pa-section"><h3>CNH e Infração</h3>
+    <div class="pa-row"><span>CNH</span><span id="pa-cnh"></span></div>
+    <div class="pa-row"><span>1ª Habilitação</span><span id="pa-hab"></span></div>
+    <div class="pa-row"><span>Categoria</span><span id="pa-cat"></span></div>
+    <div class="pa-row"><span>AIT</span><span id="pa-ait"></span></div>
+    <div class="pa-row"><span>Data autuação</span><span id="pa-daut"></span></div>
+    <div class="pa-row"><span>Órgão autuador</span><span id="pa-orgao"></span></div>
+    <div class="pa-row"><span>Placa</span><span id="pa-placa"></span></div>
+    <div class="pa-row"><span>Transferência</span><span id="pa-transf"></span></div>
+  </div>
+  <div class="pa-section"><h3>Prazos</h3><div class="pa-prazos" id="pa-prazos"></div></div>
+  <div class="pa-section"><h3>Envio e Honorários</h3>
+    <div class="pa-row"><span>Canal</span><span id="pa-canal"></span></div>
+    <div class="pa-row"><span>Rastreio / Protocolo</span><span id="pa-rastr"></span></div>
+    <div class="pa-row"><span>Honorários</span><span id="pa-honor"></span></div>
+    <div class="pa-row"><span>Pagamento</span><span id="pa-pgto"></span></div>
+    <div class="pa-row"><span>Observações</span><span id="pa-obs"></span></div>
+  </div>
+  <div class="pa-assinatura">
+    <div class="pa-ass-linha">Assinatura do Cliente</div>
+    <div class="pa-ass-linha">Responsável</div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='andersonstein_cal_v2';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxJto5TZ_JFbQ-1mTndALEXb3dmAiT_opRRhfLknW3ahQkPErYrWuvNnvK5lgWvApB8/exec';
+const TIPOS_MAP={NAIT:'NAIT',DefesaPrevia:'Defesa prévia',NIP:'NIP',JARI:'JARI',CETRAN:'CETRAN',DefesaPreviaPSDD:'Defesa prévia PSDD',JARIPSDD:'JARI PSDD',CETRANPSDD:'CETRAN PSDD'};
+const TIPOS_PSDD=['DefesaPreviaPSDD','JARIPSDD','CETRANPSDD'];
+const LABELS=['Passo 1 de 4 · Dados do cliente','Passo 2 de 4 · Infração e prazos','Passo 3 de 4 · Envio e responsáveis','Passo 4 de 4 · Revisão'];
+const PROGS=['25%','50%','75%','100%'];
+let canalSel='';
+let stepAtual=0;
+let ultimosPrazos=[];
+let ultimoCliente='';
+
+function irPara(n){
+  if(n>stepAtual&&!validar(stepAtual))return;
+  document.getElementById('step-'+stepAtual).classList.remove('active');
+  stepAtual=n;
+  document.getElementById('step-'+n).classList.add('active');
+  for(let i=0;i<4;i++){const d=document.getElementById('dot-'+i);d.className='dot'+(i===n?' on':i<n?' done':'');}
+  document.getElementById('step-label').textContent=LABELS[n]||'Concluído';
+  document.getElementById('prog').style.width=PROGS[n]||'100%';
+  if(n===3)gerarResumo();
+  window.scrollTo(0,0);
+}
+
+function validar(s){
+  if(s===0){const v=document.getElementById('c-nome').value.trim();if(!v){document.getElementById('c-nome').classList.add('err');alert('Informe o nome do cliente.');return false;}document.getElementById('c-nome').classList.remove('err');}
+  if(s===1){const a=document.getElementById('i-ait').value.trim();if(!a){document.getElementById('i-ait').classList.add('err');alert('Informe o número do AIT.');return false;}document.getElementById('i-ait').classList.remove('err');}
+  return true;
+}
+
+function toggleTipo(k){const chk=document.getElementById('chk-'+k);chk.checked=!chk.checked;document.getElementById('pc-'+k).classList.toggle('on',chk.checked);}
+
+function setCanal(c){
+  canalSel=c;
+  ['nenhum','Correios','TudoFacil','DetranOnline'].forEach(k=>document.getElementById('canal-'+k).classList.remove('on'));
+  const mk=c===''?'nenhum':c==='Tudo Fácil'?'TudoFacil':c;
+  const el=document.getElementById('canal-'+mk);if(el)el.classList.add('on');
+  document.getElementById('rastr-field').style.display=c?'block':'none';
+}
+
+function val(id){return(document.getElementById(id)?.value||'').trim();}
+function fmtDate(s){if(!s)return'—';const[y,m,d]=s.split('-');return d+'/'+m+'/'+y;}
+function getTipos(){return Object.keys(TIPOS_MAP).filter(k=>document.getElementById('chk-'+k)?.checked);}
+
+function gerarResumo(){
+  const tipos=getTipos();
+  let html='<div class="resumo-card"><h3>Cliente</h3>'
+    +'<div class="r-row"><span>Nome</span><span>'+val('c-nome')+'</span></div>'
+    +'<div class="r-row"><span>Telefone</span><span>'+val('c-tel')+'</span></div>'
+    +'<div class="r-row"><span>E-mail</span><span>'+val('c-email')+'</span></div>'
+    +'<div class="r-row"><span>Cidade</span><span>'+val('c-cidade')+'</span></div></div>'
+    +'<div class="resumo-card"><h3>Infração</h3>'
+    +'<div class="r-row"><span>AIT</span><span>'+val('i-ait')+'</span></div>'
+    +'<div class="r-row"><span>Data autuação</span><span>'+fmtDate(val('i-daut'))+'</span></div>'
+    +'<div class="r-row"><span>Órgão</span><span>'+val('i-orgao')+'</span></div>'
+    +'<div class="r-row"><span>Placa</span><span>'+val('i-placa')+'</span></div></div>'
+    +'<div class="resumo-card"><h3>Prazos ('+tipos.length+')</h3>';
+  if(!tipos.length)html+='<div class="r-row"><span style="color:#aaa">Nenhum selecionado</span><span></span></div>';
+  tipos.forEach(k=>{const dt=document.getElementById('dt-'+k)?.value;html+='<div class="r-row"><span><span class="prazo-tag'+(TIPOS_PSDD.includes(k)?' psdd':'')+'">'+TIPOS_MAP[k]+'</span></span><span>'+fmtDate(dt)+'</span></div>';});
+  html+='</div><div class="resumo-card"><h3>Responsáveis e envio</h3>'
+    +'<div class="r-row"><span>Responsável</span><span>'+val('e-resp')+'</span></div>'
+    +'<div class="r-row"><span>Atendente</span><span>'+val('e-atend')+'</span></div>'
+    +'<div class="r-row"><span>Canal</span><span>'+(canalSel||'Não enviado')+'</span></div>'
+    +(canalSel?'<div class="r-row"><span>Rastreio</span><span>'+val('e-rastr')+'</span></div>':'')
+    +'<div class="r-row"><span>Honorários</span><span>'+(val('e-honor')?'R$ '+val('e-honor'):'—')+(val('e-pgto')?' · '+val('e-pgto'):'')+'</span></div></div>';
+  document.getElementById('resumo-content').innerHTML=html;
+}
+
+async function confirmar(){
+  const tipos=getTipos();
+  let dados=[];
+  try{const r=localStorage.getItem(STORAGE_KEY);dados=r?JSON.parse(r):[];}catch(e){}
+  ultimosPrazos=[];ultimoCliente=val('c-nome');
+  const promessas=[];
+  tipos.forEach(k=>{
+    const dt=document.getElementById('dt-'+k)?.value;
+    const entrada={cliente:val('c-nome'),ait:val('i-ait').toUpperCase(),daut:val('i-daut'),orgao:val('i-orgao'),placa:val('i-placa'),tipo:TIPOS_MAP[k],data:dt||'',resp:val('e-resp'),prot:val('e-atend'),canal:canalSel,rastr:val('e-rastr'),obs:val('e-obs')};
+    dados.push(entrada);
+    ultimosPrazos.push({tipo:TIPOS_MAP[k],data:dt,isPsdd:TIPOS_PSDD.includes(k)});
+    if(dt&&APPS_SCRIPT_URL){
+      promessas.push(fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(entrada),headers:{'Content-Type':'application/json'}}).catch(()=>{}));
+    }
+  });
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(dados));}catch(e){}
+  document.getElementById('step-3').classList.remove('active');
+  stepAtual=4;
+  document.getElementById('step-4').classList.add('active');
+  document.getElementById('prog').style.width='100%';
+  document.getElementById('step-label').textContent='Concluído';
+  document.getElementById('sucesso-msg').textContent=ultimoCliente+' cadastrado com '+ultimosPrazos.length+' prazo'+(ultimosPrazos.length!==1?'s':'')+'. Enviando para o Google Agenda...';
+  document.getElementById('sucesso-prazos').innerHTML=ultimosPrazos.map(p=>'<span class="prazo-tag'+(p.isPsdd?' psdd':'')+'">'+p.tipo+(p.data?' · '+fmtDate(p.data):'')+'</span>').join('');
+  window.scrollTo(0,0);
+  await Promise.allSettled(promessas);
+  document.getElementById('sucesso-msg').textContent=ultimoCliente+' cadastrado com '+ultimosPrazos.length+' prazo'+(ultimosPrazos.length!==1?'s':'')+'. Eventos enviados para o Google Agenda!';
+}
+
+function imprimirFicha(){
+  document.getElementById('pa-data').textContent='Cadastrado em: '+new Date().toLocaleDateString('pt-BR');
+  document.getElementById('pa-resp').textContent='Responsável: '+val('e-resp');
+  document.getElementById('pa-atend').textContent='Atendente: '+val('e-atend');
+  document.getElementById('pa-nome').textContent=val('c-nome')||'—';
+  document.getElementById('pa-nasc').textContent=fmtDate(val('c-nasc'));
+  document.getElementById('pa-cpf').textContent=val('c-cpf')||'—';
+  document.getElementById('pa-tel').textContent=val('c-tel')||'—';
+  document.getElementById('pa-email').textContent=val('c-email')||'—';
+  document.getElementById('pa-prof').textContent=val('c-prof')||'—';
+  document.getElementById('pa-end').textContent=[val('c-end'),val('c-num')?'nº '+val('c-num'):'',val('c-bairro')].filter(Boolean).join(', ')||'—';
+  document.getElementById('pa-cidade').textContent=[val('c-cidade'),val('c-cep')].filter(Boolean).join(' — ')||'—';
+  document.getElementById('pa-cnh').textContent=val('i-cnh')||'—';
+  document.getElementById('pa-hab').textContent=fmtDate(val('i-hab'));
+  document.getElementById('pa-cat').textContent=val('i-cat')||'—';
+  document.getElementById('pa-ait').textContent=val('i-ait')||'—';
+  document.getElementById('pa-daut').textContent=fmtDate(val('i-daut'));
+  document.getElementById('pa-orgao').textContent=val('i-orgao')||'—';
+  document.getElementById('pa-placa').textContent=val('i-placa')||'—';
+  document.getElementById('pa-transf').textContent=val('i-transf')||(val('i-transf-data')?'Até '+fmtDate(val('i-transf-data')):'—');
+  const tipos=getTipos();
+  document.getElementById('pa-prazos').innerHTML=tipos.length?tipos.map(k=>{const dt=document.getElementById('dt-'+k)?.value;return'<div class="pa-prazo'+(TIPOS_PSDD.includes(k)?' psdd':'')+'"><strong>'+TIPOS_MAP[k]+'</strong>'+(dt?' — '+fmtDate(dt):'')+'</div>';}).join(''):'<span style="color:#aaa">Nenhum prazo selecionado</span>';
+  document.getElementById('pa-canal').textContent=canalSel||'Não enviado';
+  document.getElementById('pa-rastr').textContent=val('e-rastr')||'—';
+  document.getElementById('pa-honor').textContent=val('e-honor')?'R$ '+val('e-honor'):'—';
+  document.getElementById('pa-pgto').textContent=val('e-pgto')||'—';
+  document.getElementById('pa-obs').textContent=val('e-obs')||'—';
+  window.print();
+}
+
+function exportarICS(){
+  const now=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Anderson Stein//PT\r\n';
+  ultimosPrazos.filter(p=>p.data).forEach((p,i)=>{
+    const ds=p.data.replace(/-/g,'');
+    const[y,m,d]=p.data.split('-');
+    const de=new Date(+y,+m-1,+d+1);
+    const des=de.getFullYear()+String(de.getMonth()+1).padStart(2,'0')+String(de.getDate()).padStart(2,'0');
+    ics+='BEGIN:VEVENT\r\nUID:as-'+Date.now()+'-'+i+'@as\r\nDTSTAMP:'+now+'\r\nDTSTART;VALUE=DATE:'+ds+'\r\nDTEND;VALUE=DATE:'+des+'\r\n';
+    ics+='SUMMARY:'+(p.isPsdd?'[PSDD] ':'')+p.tipo+' — '+ultimoCliente+'\r\n';
+    ics+='BEGIN:VALARM\r\nTRIGGER:-PT1440M\r\nACTION:DISPLAY\r\nDESCRIPTION:Prazo: '+p.tipo+' — '+ultimoCliente+'\r\nEND:VALARM\r\n';
+    ics+='BEGIN:VALARM\r\nTRIGGER:-PT10080M\r\nACTION:DISPLAY\r\nDESCRIPTION:Prazo em 7 dias: '+p.tipo+' — '+ultimoCliente+'\r\nEND:VALARM\r\n';
+    ics+='END:VEVENT\r\n';
+  });
+  ics+='END:VCALENDAR';
+  const a=document.createElement('a');
+  a.href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+  a.download='prazo_'+ultimoCliente.split(' ')[0].toLowerCase()+'.ics';
+  a.click();
+}
+
+function novoAtendimento(){
+  ['c-nome','c-cpf','c-gov','c-tel','c-email','c-prof','c-end','c-num','c-bairro','c-cidade','c-cep','i-cnh','i-ait','i-placa','i-transf-data','e-rastr','e-honor','e-parcelas','e-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['c-nasc','i-hab','i-daut'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['i-orgao','i-transf','i-cat','e-resp','e-atend','e-pgto'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  Object.keys(TIPOS_MAP).forEach(k=>{const chk=document.getElementById('chk-'+k);if(chk)chk.checked=false;const pc=document.getElementById('pc-'+k);if(pc)pc.classList.remove('on');const dt=document.getElementById('dt-'+k);if(dt)dt.value='';});
+  setCanal('');
+  document.getElementById('step-4').classList.remove('active');
+  stepAtual=0;document.getElementById('step-0').classList.add('active');
+  for(let i=0;i<4;i++){const d=document.getElementById('dot-'+i);d.className='dot'+(i===0?' on':'');}
+  document.getElementById('step-label').textContent=LABELS[0];
+  document.getElementById('prog').style.width='25%';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
