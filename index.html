@@ -210,9 +210,11 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f
       <h2>Cliente cadastrado!</h2>
       <p id="sucesso-msg"></p>
       <div class="sucesso-prazos" id="sucesso-prazos"></div>
-      <div class="sucesso-btns">
-        <button class="btn success" onclick="novoAtendimento()"><button class="btn success" onclick="novoAtendimento()">+ Novo atendimento</button>         <button class="btn" onclick="exportarICS()">📅 Exportar para Google Agenda</button></button>
-        <button class="btn" onclick="exportarICS()">📅 Exportar para Google Agenda</button>
+<div class="sucesso-btns">
+        <button class="btn success" onclick="novoAtendimento()">+ Novo atendimento</button>
+        <button class="btn" onclick="imprimirFicha()">🖨️ Imprimir ficha</button>
+        <button class="btn" onclick="exportarICS()">📅 Exportar .ics</button>
+      </div>
       </div>
     </div>
   </div>
@@ -372,7 +374,7 @@ function exportarICS(){
   a.click();
 }
 
-function novoAtendimento(){
+function imprimirFicha(){window.print();}(){
   ['c-nome','c-cpf','c-gov','c-tel','c-email','c-prof','c-end','c-num','c-bairro','c-cidade','c-cep','i-cnh','i-ait','i-placa','i-transf-data','e-rastr','e-honor','e-parcelas','e-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['c-nasc','i-hab','i-daut'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['i-orgao','i-transf','i-cat','e-resp','e-atend','e-pgto'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
